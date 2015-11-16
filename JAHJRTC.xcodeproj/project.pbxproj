@@ -21,6 +21,7 @@
 		98A0AB221BFA9EA2001E703D /* JAHConvertJingle+Jingle.m in Sources */ = {isa = PBXBuildFile; fileRef = 98A0AB1D1BFA9EA2001E703D /* JAHConvertJingle+Jingle.m */; };
 		98A0AB231BFA9EA2001E703D /* JAHConvertJingle+RTP.m in Sources */ = {isa = PBXBuildFile; fileRef = 98A0AB1F1BFA9EA2001E703D /* JAHConvertJingle+RTP.m */; };
 		98A0AB271BFA9F82001E703D /* JAHJRTC.m in Sources */ = {isa = PBXBuildFile; fileRef = 98A0AB261BFA9F82001E703D /* JAHJRTC.m */; };
+		98A0AB2A1BFAA0FC001E703D /* JAHSenders.m in Sources */ = {isa = PBXBuildFile; fileRef = 98A0AB291BFAA0FC001E703D /* JAHSenders.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -62,6 +63,8 @@
 		98A0AB1F1BFA9EA2001E703D /* JAHConvertJingle+RTP.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "JAHConvertJingle+RTP.m"; sourceTree = "<group>"; };
 		98A0AB251BFA9F82001E703D /* JAHJRTC.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JAHJRTC.h; sourceTree = "<group>"; };
 		98A0AB261BFA9F82001E703D /* JAHJRTC.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JAHJRTC.m; sourceTree = "<group>"; };
+		98A0AB281BFAA0FC001E703D /* JAHSenders.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JAHSenders.h; sourceTree = "<group>"; };
+		98A0AB291BFAA0FC001E703D /* JAHSenders.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JAHSenders.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -125,6 +128,8 @@
 			children = (
 				98A0AB251BFA9F82001E703D /* JAHJRTC.h */,
 				98A0AB261BFA9F82001E703D /* JAHJRTC.m */,
+				98A0AB281BFAA0FC001E703D /* JAHSenders.h */,
+				98A0AB291BFAA0FC001E703D /* JAHSenders.m */,
 				98A0AB161BFA9EA2001E703D /* JAHConvertJingle */,
 				98A0AB241BFA9EA9001E703D /* JAHConvertSDP */,
 				98A0AAF11BFA9E56001E703D /* AppDelegate.h */,
@@ -340,6 +345,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				98A0AB2A1BFAA0FC001E703D /* JAHSenders.m in Sources */,
 				98A0AB201BFA9EA2001E703D /* JAHConvertJingle.m in Sources */,
 				98A0AAF61BFA9E56001E703D /* ViewController.m in Sources */,
 				98A0AB271BFA9F82001E703D /* JAHJRTC.m in Sources */,
