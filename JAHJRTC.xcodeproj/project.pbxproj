@@ -14,6 +14,11 @@
 		98A0AAFB1BFA9E56001E703D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 98A0AAFA1BFA9E56001E703D /* Assets.xcassets */; };
 		98A0AAFE1BFA9E56001E703D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 98A0AAFC1BFA9E56001E703D /* LaunchScreen.storyboard */; };
 		98A0AB091BFA9E56001E703D /* JAHJRTCTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 98A0AB081BFA9E56001E703D /* JAHJRTCTests.m */; };
+		98A0AB151BFA9E98001E703D /* JAHConvertSDP.m in Sources */ = {isa = PBXBuildFile; fileRef = 98A0AB141BFA9E98001E703D /* JAHConvertSDP.m */; };
+		98A0AB201BFA9EA2001E703D /* JAHConvertJingle.m in Sources */ = {isa = PBXBuildFile; fileRef = 98A0AB181BFA9EA2001E703D /* JAHConvertJingle.m */; };
+		98A0AB211BFA9EA2001E703D /* JAHConvertJingle+ICE.m in Sources */ = {isa = PBXBuildFile; fileRef = 98A0AB1B1BFA9EA2001E703D /* JAHConvertJingle+ICE.m */; };
+		98A0AB221BFA9EA2001E703D /* JAHConvertJingle+Jingle.m in Sources */ = {isa = PBXBuildFile; fileRef = 98A0AB1D1BFA9EA2001E703D /* JAHConvertJingle+Jingle.m */; };
+		98A0AB231BFA9EA2001E703D /* JAHConvertJingle+RTP.m in Sources */ = {isa = PBXBuildFile; fileRef = 98A0AB1F1BFA9EA2001E703D /* JAHConvertJingle+RTP.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -40,6 +45,16 @@
 		98A0AB041BFA9E56001E703D /* JAHJRTCTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JAHJRTCTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		98A0AB081BFA9E56001E703D /* JAHJRTCTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = JAHJRTCTests.m; sourceTree = "<group>"; };
 		98A0AB0A1BFA9E56001E703D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		98A0AB131BFA9E98001E703D /* JAHConvertSDP.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JAHConvertSDP.h; sourceTree = "<group>"; };
+		98A0AB141BFA9E98001E703D /* JAHConvertSDP.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JAHConvertSDP.m; sourceTree = "<group>"; };
+		98A0AB171BFA9EA2001E703D /* JAHConvertJingle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JAHConvertJingle.h; sourceTree = "<group>"; };
+		98A0AB181BFA9EA2001E703D /* JAHConvertJingle.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JAHConvertJingle.m; sourceTree = "<group>"; };
+		98A0AB1A1BFA9EA2001E703D /* JAHConvertJingle+ICE.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "JAHConvertJingle+ICE.h"; sourceTree = "<group>"; };
+		98A0AB1B1BFA9EA2001E703D /* JAHConvertJingle+ICE.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "JAHConvertJingle+ICE.m"; sourceTree = "<group>"; };
+		98A0AB1C1BFA9EA2001E703D /* JAHConvertJingle+Jingle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "JAHConvertJingle+Jingle.h"; sourceTree = "<group>"; };
+		98A0AB1D1BFA9EA2001E703D /* JAHConvertJingle+Jingle.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "JAHConvertJingle+Jingle.m"; sourceTree = "<group>"; };
+		98A0AB1E1BFA9EA2001E703D /* JAHConvertJingle+RTP.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "JAHConvertJingle+RTP.h"; sourceTree = "<group>"; };
+		98A0AB1F1BFA9EA2001E703D /* JAHConvertJingle+RTP.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "JAHConvertJingle+RTP.m"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -81,6 +96,8 @@
 		98A0AAED1BFA9E56001E703D /* JAHJRTC */ = {
 			isa = PBXGroup;
 			children = (
+				98A0AB161BFA9EA2001E703D /* JAHConvertJingle */,
+				98A0AB241BFA9EA9001E703D /* JAHConvertSDP */,
 				98A0AAF11BFA9E56001E703D /* AppDelegate.h */,
 				98A0AAF21BFA9E56001E703D /* AppDelegate.m */,
 				98A0AAF41BFA9E56001E703D /* ViewController.h */,
@@ -109,6 +126,38 @@
 				98A0AB0A1BFA9E56001E703D /* Info.plist */,
 			);
 			path = JAHJRTCTests;
+			sourceTree = "<group>";
+		};
+		98A0AB161BFA9EA2001E703D /* JAHConvertJingle */ = {
+			isa = PBXGroup;
+			children = (
+				98A0AB171BFA9EA2001E703D /* JAHConvertJingle.h */,
+				98A0AB181BFA9EA2001E703D /* JAHConvertJingle.m */,
+				98A0AB191BFA9EA2001E703D /* Stanzas */,
+			);
+			path = JAHConvertJingle;
+			sourceTree = "<group>";
+		};
+		98A0AB191BFA9EA2001E703D /* Stanzas */ = {
+			isa = PBXGroup;
+			children = (
+				98A0AB1A1BFA9EA2001E703D /* JAHConvertJingle+ICE.h */,
+				98A0AB1B1BFA9EA2001E703D /* JAHConvertJingle+ICE.m */,
+				98A0AB1C1BFA9EA2001E703D /* JAHConvertJingle+Jingle.h */,
+				98A0AB1D1BFA9EA2001E703D /* JAHConvertJingle+Jingle.m */,
+				98A0AB1E1BFA9EA2001E703D /* JAHConvertJingle+RTP.h */,
+				98A0AB1F1BFA9EA2001E703D /* JAHConvertJingle+RTP.m */,
+			);
+			path = Stanzas;
+			sourceTree = "<group>";
+		};
+		98A0AB241BFA9EA9001E703D /* JAHConvertSDP */ = {
+			isa = PBXGroup;
+			children = (
+				98A0AB131BFA9E98001E703D /* JAHConvertSDP.h */,
+				98A0AB141BFA9E98001E703D /* JAHConvertSDP.m */,
+			);
+			name = JAHConvertSDP;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -211,9 +260,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				98A0AB201BFA9EA2001E703D /* JAHConvertJingle.m in Sources */,
 				98A0AAF61BFA9E56001E703D /* ViewController.m in Sources */,
+				98A0AB151BFA9E98001E703D /* JAHConvertSDP.m in Sources */,
 				98A0AAF31BFA9E56001E703D /* AppDelegate.m in Sources */,
+				98A0AB211BFA9EA2001E703D /* JAHConvertJingle+ICE.m in Sources */,
+				98A0AB221BFA9EA2001E703D /* JAHConvertJingle+Jingle.m in Sources */,
 				98A0AAF01BFA9E56001E703D /* main.m in Sources */,
+				98A0AB231BFA9EA2001E703D /* JAHConvertJingle+RTP.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
