@@ -64,9 +64,9 @@ static NSString *const GROUPNS = @"urn:xmpp:jingle:apps:grouping:0";
         ObjectToXMLBlock convertMoreFeedback = [JAHConvertJingle blockForName:@"rtcp-fb-trr-int" namespace:FBNS];
         for (NSDictionary* feedback in object[@"feedback"]) {
             if ([feedback[@"type"] isEqualToString:@"trr-int"]) {
-                [description addChild:convertMoreFeedback(feedback)];
-            } else {
                 [description addChild:convertFeedback(feedback)];
+            } else {
+                [description addChild:convertMoreFeedback(feedback)];
             }
         }
 
@@ -127,9 +127,9 @@ static NSString *const GROUPNS = @"urn:xmpp:jingle:apps:grouping:0";
         ObjectToXMLBlock convertMoreFeedback = [JAHConvertJingle blockForName:@"rtcp-fb-trr-int" namespace:FBNS];
         for (NSDictionary* feedback in object[@"feedback"]) {
             if ([feedback[@"type"] isEqualToString:@"trr-int"]) {
-                [payload addChild:convertMoreFeedback(feedback)];
-            } else {
                 [payload addChild:convertFeedback(feedback)];
+            } else {
+                [payload addChild:convertMoreFeedback(feedback)];
             }
         }
 
