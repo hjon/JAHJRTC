@@ -5,6 +5,7 @@
 //
 
 #import "JAHConvertSDP.h"
+#import "JAHSenders.h"
 
 @interface NSMutableArray (JAHConvenience)
 - (id)jah_popFirstObject;
@@ -25,7 +26,11 @@
 
 @implementation JAHConvertSDP
 
-+ (NSDictionary*)dictionaryForSDP:(NSString*)sdp withCreatorRole:(NSString*)creator {
++ (NSDictionary*)dictionaryForSDP:(NSString*)sdp options:(NSDictionary*)options {
+//    NSString* creator = options[@"creator"] ?: @"initiator";
+//    NSString* role = options[@"role"] ?: @"initiator";
+//    NSString* direction = options[@"direction"] ?: @"outgoing";
+
     // Divide the SDP into session and media sections
     NSMutableArray* media = [[sdp componentsSeparatedByString:@"\r\nm="] mutableCopy];
     for (NSUInteger i = 1; i < [media count]; i++) {
@@ -37,78 +42,83 @@
     }
 
     NSMutableDictionary* parsed = [NSMutableDictionary dictionary];
-
     NSString* session = [NSString stringWithFormat:@"%@%@", [media jah_popFirstObject], @"\r\n"];
 
     NSMutableArray* contents = [NSMutableArray array];
     for (NSString* m in media) {
-        [contents addObject:[[self class] convertSDPMediaToDictionary:m withSession:session withCreatorRole:creator]];
+        [contents addObject:[[self class] dictionaryForSDPMedia:m session:session options:options]];
     }
     parsed[@"contents"] = contents;
 
     NSArray* sessionLines = [[self class] linesForSDP:session];
     NSArray* groupLines = [[self class] linesForPrefix:@"a=group:" mediaLines:nil sessionLines:sessionLines];
     if ([groupLines count] > 0) {
-        parsed[@"groups"] = [[self class] groupsForGroupLines:groupLines];
+        parsed[@"groups"] = [[self class] groupsForLines:groupLines];
     }
 
     return parsed;
 }
 
-+ (NSDictionary*)convertSDPMediaToDictionary:(NSString *)media withSession:(NSString*)session withCreatorRole:(NSString *)creator {
-    NSMutableDictionary* content = [NSMutableDictionary dictionary];
-    content[@"creator"] = creator;
++ (NSDictionary*)dictionaryForSDPMedia:(NSString *)media session:(NSString*)session options:(NSDictionary*)options {
+    NSString* creator = options[@"creator"] ?: @"initiator";
+    NSString* role = options[@"role"] ?: @"initiator";
+    NSString* direction = options[@"direction"] ?: @"outgoing";
 
     NSArray* mediaLines = [[self class] linesForSDP:media];
     NSArray* sessionLines = [[self class] linesForSDP:session];
     NSDictionary* mLine = [[self class] mLineForLine:[mediaLines firstObject]];
 
-    NSString* name = mLine[@"media"];
+    NSMutableDictionary* content = [NSMutableDictionary dictionary];
+    content[@"creator"] = creator;
+    //-----------
+    content[@"name"] = mLine[@"media"];
+    content[@"description"] = [@{@"descType": @"rtp",
+                                 @"media": mLine[@"media"],
+                                 @"payloads": [NSMutableArray array],
+                                 @"encryption": [NSMutableArray array],
+                                 @"feedback": [NSMutableArray array],
+                                 @"headerExtensions": [NSMutableArray array]} mutableCopy];
+    content[@"transport"] = [@{@"transType": @"iceUdp",
+                               @"candidates": [NSMutableArray array],
+                               @"fingerprints": [NSMutableArray array]} mutableCopy];
+
+    if ([mLine[@"media"] isEqualToString:@"application"]) {
+//        FIXME: the description is most likely to be independent
+//        of the SDP and should be processed by other parts of the library
+        content[@"description"][@"descType"] = @"datachannel";
+
+        content[@"transport"][@"sctp"] = [NSMutableArray array];
+    }
+    NSMutableDictionary* desc = content[@"description"];
+    NSMutableDictionary* transport = content[@"transport"];
+
     // If we have a mid, use that for the content name instead
     NSString* mid = [[self class] lineForPrefix:@"a=mid:" mediaLines:mediaLines sessionLines:nil];
     if (mid) {
-        name = [mid substringFromIndex:6];
+        content[@"name"] = [mid substringFromIndex:6];
     }
-    content[@"name"] = name;
 
-    NSString* senders;
     if ([[self class] lineForPrefix:@"a=sendrecv" mediaLines:mediaLines sessionLines:sessionLines]) {
-        senders = @"both";
+        content[@"senders"] = @"both";
     } else if ([[self class] lineForPrefix:@"a=sendonly" mediaLines:mediaLines sessionLines:sessionLines]) {
-        senders = @"initiator";
+        NSDictionary* senders = [JAHSenders senders];
+        content[@"senders"] = senders[role][direction][@"sendonly"];
     } else if ([[self class] lineForPrefix:@"a=recvonly" mediaLines:mediaLines sessionLines:sessionLines]) {
-        senders = @"responder";
+        NSDictionary* senders = [JAHSenders senders];
+        content[@"senders"] = senders[role][direction][@"recvonly"];;
     } else if ([[self class] lineForPrefix:@"a=inactive" mediaLines:mediaLines sessionLines:sessionLines]) {
-        senders = @"none";
-    }
-    if (senders) {
-        content[@"senders"] = senders;
+        content[@"senders"] = @"none";
     }
 
-    NSMutableDictionary* description = [NSMutableDictionary dictionary];
-
-    NSMutableDictionary* transport = [NSMutableDictionary dictionary];
-    transport[@"fingerprints"] = [NSMutableArray array];
-    if ([mLine[@"media"] isEqualToString:@"application"]) {
-        description[@"descType"] = @"datachannel";
-
-        NSMutableArray* sctp = [NSMutableArray array];
-        transport[@"sctp"] = sctp;
-    } else {
-        description[@"descType"] = @"rtp";
-        description[@"media"] = mLine[@"media"];
-        description[@"payloads"] = [NSMutableArray array];
-        description[@"encryption"] = [NSMutableArray array];
-        description[@"feedback"] = [NSMutableArray array];
-        description[@"headerExtensions"] = [NSMutableArray array];
-
-        transport[@"transType"] = @"iceUdp";
-        transport[@"candidates"] = [NSMutableArray array];
+    if ([desc[@"descType"] isEqualToString:@"rtp"]) {
+        NSString* bandwidth = [[self class] lineForPrefix:@"b=" mediaLines:mediaLines sessionLines:nil];
+        if (bandwidth) {
+            desc[@"bandwidth"] = [[self class] bandwidthForLine:bandwidth];
+        }
 
         NSString* ssrc = [[self class] lineForPrefix:@"a=ssrc:" mediaLines:mediaLines sessionLines:nil];
         if (ssrc) {
-            ssrc = [[[ssrc substringFromIndex:7] componentsSeparatedByString:@" "] firstObject];
-            description[@"ssrc"] = ssrc;
+            desc[@"ssrc"] = [[[ssrc substringFromIndex:7] componentsSeparatedByString:@" "] firstObject];
         }
 
         NSArray* rtpMapLines = [[self class] linesForPrefix:@"a=rtpmap:" mediaLines:mediaLines sessionLines:nil];
@@ -126,49 +136,46 @@
                 [payload[@"feedback"] addObject:[[self class] rtcpfbForLine:line]];
             }
 
-            [description[@"payloads"] addObject:payload];
+            [desc[@"payloads"] addObject:payload];
         }
 
         NSArray* cryptoLines = [[self class] linesForPrefix:@"a=crypto:" mediaLines:mediaLines sessionLines:sessionLines];
         for (NSString* line in cryptoLines) {
-            [description[@"encryption"] addObject:[[self class] cryptoForLine:line]];
+            [desc[@"encryption"] addObject:[[self class] cryptoForLine:line]];
         }
 
         NSArray* muxLines = [[self class] linesForPrefix:@"a=rtcp-mux" mediaLines:mediaLines sessionLines:nil];
         if ([muxLines count] > 0) {
-            description[@"mux"] = @YES;
+            desc[@"mux"] = @YES;
         }
 
         NSArray* fbLines = [[self class] linesForPrefix:@"a=rtcp-fb:*" mediaLines:mediaLines sessionLines:nil];
         for (NSString* line in fbLines) {
-            [description[@"feedback"] addObject:[[self class] rtcpfbForLine:line]];
+            [desc[@"feedback"] addObject:[[self class] rtcpfbForLine:line]];
         }
 
         NSArray* extLines = [[self class] linesForPrefix:@"a=extmap:" mediaLines:mediaLines sessionLines:nil];
         for (NSString* line in extLines) {
             NSMutableDictionary* ext = [[self class] extMapForLine:line];
 
-            NSDictionary* senders = @{@"sendonly": @"responder",
-                                      @"recvonly": @"initiator",
-                                      @"sendrecv": @"both",
-                                      @"inactive": @"none"};
-            ext[@"senders"] = senders[ext[@"senders"]];
+            NSDictionary* senders = [JAHSenders senders];
+            ext[@"senders"] = senders[role][direction][ext[@"senders"]];
 
-            [description[@"headerExtensions"] addObject:ext];
+            [desc[@"headerExtensions"] addObject:ext];
         }
 
         NSArray* ssrcGroupLines = [[self class] linesForPrefix:@"a=ssrc-group" mediaLines:mediaLines sessionLines:nil];
-        description[@"sourceGroups"] = [[self class] sourceGroupsForGroupLines:ssrcGroupLines];
+        desc[@"sourceGroups"] = [[self class] sourceGroupsForLines:ssrcGroupLines];
 
         NSArray* ssrcLines = [[self class] linesForPrefix:@"a=ssrc:" mediaLines:mediaLines sessionLines:nil];
-        description[@"sources"] = [[self class] sourcesForLines:ssrcLines];
+        desc[@"sources"] = [[self class] sourcesForLines:ssrcLines];
     }
 
     // transport specific attributes
     NSArray* fingerprintLines = [[self class] linesForPrefix:@"a=fingerprint:" mediaLines:mediaLines sessionLines:sessionLines];
+    NSString* setup = [[self class] lineForPrefix:@"a=setup:" mediaLines:mediaLines sessionLines:sessionLines];
     for (NSString* line in fingerprintLines) {
         NSMutableDictionary* fp = [[self class] fingerprintForLine:line];
-        NSString* setup = [[self class] lineForPrefix:@"a=setup:" mediaLines:mediaLines sessionLines:sessionLines];
         if (setup) {
             fp[@"setup"] = [setup substringFromIndex:8];
         }
@@ -188,47 +195,21 @@
         }
     }
 
-    if ([description[@"descType"] isEqualToString:@"datachannel"]) {
+    if ([desc[@"descType"] isEqualToString:@"datachannel"]) {
         NSArray* sctpMapLines = [[self class] linesForPrefix:@"a=sctpmap:" mediaLines:mediaLines sessionLines:nil];
         for (NSString* line in sctpMapLines) {
             [transport[@"sctp"] addObject:[[self class] sctpMapForLine:line]];
         }
     }
-
-    content[@"description"] = description;
-    content[@"transport"] = transport;
-
+    
     return content;
 }
 
 + (NSDictionary*)candidateForLine:(NSString*)line {
-    line = [[line componentsSeparatedByString:@"\r\n"] firstObject];
+    NSArray* components = [line componentsSeparatedByString:@"\r\n"];
+    NSMutableDictionary* candidate = [[self class] _candidateForLine:[components firstObject]];
 
-    NSArray* parts = [[line substringFromIndex:12] componentsSeparatedByString:@" "];
-
-    NSMutableDictionary* candidate = [NSMutableDictionary dictionary];
-    candidate[@"foundation"] = parts[0];
-    candidate[@"component"] = parts[1];
-    candidate[@"protocol"] = [parts[2] lowercaseString];
-    candidate[@"priority"] = parts[3];
-    candidate[@"ip"] = parts[4];
-    candidate[@"port"] = parts[5];
-    // skip parts[6] == 'typ';
-    candidate[@"type"] = parts[7];
-    candidate[@"generation"] = @"0";
-
-    for (NSUInteger i = 8; i < [parts count]; i += 2) {
-        if ([parts[i] isEqualToString:@"raddr"]) {
-            candidate[@"relAddr"] = parts[i + 1];
-        } else if ([parts[i] isEqualToString:@"rport"]) {
-            candidate[@"relPort"] = parts[i + 1];
-        } else if ([parts[i] isEqualToString:@"generation"]) {
-            candidate[@"generation"] = parts[i + 1];
-        }
-    }
-
-    candidate[@"network"] = @"1";
-
+    // TODO: Allow this id to be set by tests
     candidate[@"id"] = [[NSUUID UUID] UUIDString];
     return candidate;
 }
@@ -275,19 +256,6 @@
         }
     }
     return results;
-}
-
-+ (NSArray*)groupsForGroupLines:(NSArray*)lines {
-    // http://tools.ietf.org/html/rfc5888
-    NSMutableArray* parsed = [NSMutableArray array];
-    NSMutableArray* parts;
-    for (NSString* line in lines) {
-        parts = [[[line substringFromIndex:8] componentsSeparatedByString:@" "] mutableCopy];
-        NSDictionary* group = @{@"semantics":[parts jah_popFirstObject],
-                                @"contents": parts};
-        [parsed addObject:[group mutableCopy]];
-    }
-    return parsed;
 }
 
 #pragma mark -
@@ -353,6 +321,7 @@
 
 + (NSDictionary*)cryptoForLine:(NSString*)line {
     NSArray* parts = [[line substringFromIndex:9] componentsSeparatedByString:@" "];
+    //This line could be just a bit off...
     NSArray* subarray = [parts subarrayWithRange:NSMakeRange(3, [parts count] - 3)];
     NSDictionary* parsed = @{@"tag": parts[0],
                              @"cipherSuite": parts[1],
@@ -406,7 +375,42 @@
     return parsed;
 }
 
-+ (NSArray*)sourceGroupsForGroupLines:(NSArray*)lines {
++ (NSMutableDictionary*)_candidateForLine:(NSString*)line {
+    NSArray* parts;
+    if ([line hasPrefix:@"a=candidate:"]) {
+        parts = [[line substringFromIndex:12] componentsSeparatedByString:@" "];
+    } else {
+        parts = [[line substringFromIndex:10] componentsSeparatedByString:@" "];
+    }
+
+    NSMutableDictionary* candidate = [@{@"foundation": parts[0],
+                                        @"component": parts[1],
+                                        @"protocol": [parts[2] lowercaseString],
+                                        @"priority": parts[3],
+                                        @"ip": parts[4],
+                                        @"port": parts[5],
+                                        // skip parts[6] == 'typ';
+                                        @"type": parts[7],
+                                        @"generation": @"0"} mutableCopy];
+
+    for (NSUInteger i = 8; i < [parts count]; i = i + 2) {
+        if ([parts[i] isEqualToString:@"raddr"]) {
+            candidate[@"relAddr"] = parts[i + 1];
+        } else if ([parts[i] isEqualToString:@"rport"]) {
+            candidate[@"relPort"] = parts[i + 1];
+        } else if ([parts[i] isEqualToString:@"generation"]) {
+            candidate[@"generation"] = parts[i + 1];
+        } else if ([parts[i] isEqualToString:@"tcptype"]) {
+            candidate[@"tcpType"] = parts[i + 1];
+        }
+    }
+
+    candidate[@"network"] = @"1";
+
+    return candidate;
+}
+
++ (NSArray*)sourceGroupsForLines:(NSArray*)lines {
     NSMutableArray* parsed = [NSMutableArray array];
     NSMutableArray* parts;
     for (NSString* line in lines) {
@@ -445,26 +449,39 @@
     return parsed;
 }
 
-#pragma mark - Objects -> SDP
-
-+ (NSDictionary*)senders {
-    return @{@"initiator": @"sendonly",
-             @"responder": @"recvonly",
-             @"both": @"sendrecv",
-             @"none": @"inactive",
-             @"sendonly": @"initiator",
-             @"recvonly": @"responder",
-             @"sendrecv": @"both",
-             @"inactive": @"none"};
++ (NSArray*)groupsForLines:(NSArray*)lines {
+    // http://tools.ietf.org/html/rfc5888
+    NSMutableArray* parsed = [NSMutableArray array];
+    NSMutableArray* parts;
+    for (NSString* line in lines) {
+        parts = [[[line substringFromIndex:8] componentsSeparatedByString:@" "] mutableCopy];
+        NSDictionary* group = @{@"semantics":[parts jah_popFirstObject],
+                                @"contents": parts};
+        [parsed addObject:[group mutableCopy]];
+    }
+    return parsed;
 }
 
-+ (NSString*)SDPForSession:(NSDictionary*)session sid:(NSString*)sid time:(NSString*)time {
++ (NSDictionary*)bandwidthForLine:(NSString*)line {
+    NSMutableArray* parts = [[[line substringFromIndex:2] componentsSeparatedByString:@" "] mutableCopy];
+    NSMutableDictionary* parsed = [NSMutableDictionary dictionary];
+    parsed[@"type"] = [parts jah_popFirstObject];
+    parsed[@"bandwidth"] = [parts jah_popFirstObject];
+    return parsed;
+}
+
+#pragma mark - Objects -> SDP
+
++ (NSString*)SDPForSession:(NSDictionary*)session options:(NSDictionary*)options {
+    NSString* sid = options[@"sid"];
     if (!sid) {
         sid = session[@"sid"];
     }
     if (!sid) {
         sid = [NSString stringWithFormat:@"%f", [[NSDate date] timeIntervalSince1970] * 10];
     }
+
+    NSString* time = options[@"time"];
     if (!time) {
         time = [NSString stringWithFormat:@"%f", [[NSDate date] timeIntervalSince1970] * 10];
     }
@@ -481,14 +498,17 @@
     }
 
     for (NSDictionary* content in session[@"contents"]) {
-        [sdp addObject:[[self class] mediaSDPForContent:content]];
+        [sdp addObject:[[self class] mediaSDPForContent:content options:options]];
     }
 
     return [[sdp componentsJoinedByString:@"\r\n"] stringByAppendingString:@"\r\n"];
 }
 
-+ (NSString*)mediaSDPForContent:(NSDictionary*)content {
++ (NSString*)mediaSDPForContent:(NSDictionary*)content options:(NSDictionary*)options {
     NSMutableArray* sdp = [NSMutableArray array];
+
+    NSString* role = options[@"role"] ?: @"initiator";
+    NSString* direction = options[@"direction"] ?: @"outgoing";
 
     NSDictionary* desc = content[@"description"];
     NSDictionary* transport = content[@"transport"];
@@ -517,7 +537,9 @@
     [sdp addObject:[NSString stringWithFormat:@"m=%@", [mline componentsJoinedByString:@" "]]];
 
     [sdp addObject:@"c=IN IP4 0.0.0.0"];
-
+    if (desc[@"bandwidth"][@"type"] && desc[@"bandwidth"][@"bandwidth"]) {
+        [sdp addObject:[NSString stringWithFormat:@"b=%@:%@", desc[@"bandwidth"][@"type"], desc[@"bandwidth"][@"bandwidth"]]];
+    }
     if ([desc[@"descType"] isEqualToString:@"rtp"]) {
         [sdp addObject:@"a=rtcp:1 IN IP4 0.0.0.0"];
     }
@@ -529,21 +551,23 @@
         if (transport[@"pwd"]) {
             [sdp addObject:[NSString stringWithFormat:@"a=ice-pwd:%@", transport[@"pwd"]]];
         }
-        NSString* setup = [[transport[@"fingerprints"] firstObject] objectForKey:@"setup"];
-        if (setup) {
-            [sdp addObject:[NSString stringWithFormat:@"a=setup:%@", setup]];
-        }
+
+        BOOL pushedSetup = NO;
         for (NSDictionary* fingerprint in transport[@"fingerprints"]) {
             [sdp addObject:[NSString stringWithFormat:@"a=fingerprint:%@ %@", fingerprint[@"hash"], fingerprint[@"value"]]];
+            if (fingerprint[@"setup"] && !pushedSetup) {
+                [sdp addObject:[NSString stringWithFormat:@"a=setup:%@", fingerprint[@"setup"]]];
+            }
         }
+
         for (NSDictionary* map in transport[@"sctp"]) {
             [sdp addObject:[NSString stringWithFormat:@"a=sctpmap:%@ %@ %@", map[@"number"], map[@"protocol"], map[@"streams"]]];
         }
     }
 
     if ([desc[@"descType"] isEqualToString:@"rtp"]) {
-        #warning Should I be checking the length?
-        NSString* sender = [[[self class] senders] objectForKey:content[@"senders"]] ?: @"sendrecv";
+        NSDictionary* senders = [JAHSenders senders];
+        NSString* sender = senders[role][direction][content[@"senders"]];
         [sdp addObject:[NSString stringWithFormat:@"a=%@", sender]];
     }
     [sdp addObject:[NSString stringWithFormat:@"a=mid:%@", content[@"name"]]];
@@ -567,32 +591,30 @@
         if ([payload[@"parameters"] count]) {
             NSMutableArray* fmtp = [NSMutableArray array];
             [fmtp addObject:[@"a=fmtp:" stringByAppendingString:payload[@"id"]]];
+            NSMutableArray* parameters = [NSMutableArray array];
             for (NSDictionary* param in payload[@"parameters"]) {
                 NSString* key = param[@"key"] ? [param[@"key"] stringByAppendingString:@"="] : @"";
-                [fmtp addObject:[key stringByAppendingString:param[@"value"]]];
+                [parameters addObject:[key stringByAppendingString:param[@"value"]]];
             }
+            [fmtp addObject:[parameters componentsJoinedByString:@";"]];
             [sdp addObject:[fmtp componentsJoinedByString:@" "]];
         }
 
-        if (payload[@"feedback"]) {
-            for (NSDictionary* fb in payload[@"feedback"]) {
-                NSMutableString* rtcp = [NSMutableString stringWithFormat:@"a=rtcp-fb:%@", payload[@"id"]];
-                if ([fb[@"type"] isEqualToString:@"trr-int"]) {
-                    #warning Should I be checking the length?
-                    [rtcp appendFormat:@" %@", fb[@"value"] ?: @"0"];
-                } else {
-                    [rtcp appendFormat:@" %@%@", fb[@"type"], [fb[@"subtype"] length] ? [@" " stringByAppendingString:fb[@"subtype"]] : @""];
+        for (NSDictionary* fb in payload[@"feedback"]) {
+            NSMutableString* rtcp = [NSMutableString stringWithFormat:@"a=rtcp-fb:%@", payload[@"id"]];
+            if ([fb[@"type"] isEqualToString:@"trr-int"]) {
+                [rtcp appendFormat:@" trr-int %@", fb[@"value"] ?: @"0"];
+            } else {
+                [rtcp appendFormat:@" %@%@", fb[@"type"], [fb[@"subtype"] length] ? [@" " stringByAppendingString:fb[@"subtype"]] : @""];
 
-                }
-                [sdp addObject:rtcp];
             }
+            [sdp addObject:rtcp];
         }
     }
 
-    for (id fb in desc[@"feedback"]) {
+    for (NSDictionary* fb in desc[@"feedback"]) {
         NSMutableString* rtcp = [NSMutableString stringWithString:@"a=rtcp-fb:* "];
         if ([fb[@"type"] isEqualToString:@"trr-int"]) {
-            #warning Should I be checking the length?
             [rtcp appendFormat:@"trr-int %@", fb[@"value"] ?: @"0"];
         } else {
             [rtcp appendFormat:@"%@%@", fb[@"type"], [fb[@"subtype"] length] ? [@" " stringByAppendingString:fb[@"subtype"]] : @""];
@@ -601,7 +623,8 @@
     }
 
     for (NSDictionary* hdr in desc[@"headerExtensions"]) {
-        NSMutableString* extMap = [NSMutableString stringWithFormat:@"a=extmap:%@%@ %@", hdr[@"id"], [hdr[@"senders"] length] ? [@"/" stringByAppendingString:[[[self class] senders] objectForKey:hdr[@"senders"]]] : @"", hdr[@"uri"]];
+        NSDictionary* senders = [JAHSenders senders];
+        NSMutableString* extMap = [NSMutableString stringWithFormat:@"a=extmap:%@%@ %@", hdr[@"id"], [hdr[@"senders"] length] ? [@"/" stringByAppendingString:senders[role][direction][hdr[@"senders"]]] : @"", hdr[@"uri"]];
         [sdp addObject:extMap];
     }
 
@@ -611,8 +634,7 @@
     }
 
     for (NSDictionary* ssrc in desc[@"sources"]) {
-        for (id parameter in ssrc[@"parameters"]) {
-#warning Should I be checking the length?
+        for (NSDictionary* parameter in ssrc[@"parameters"]) {
             NSMutableString* ssrcString = [NSMutableString stringWithFormat:@"a=ssrc:%@ %@%@", ssrc[@"ssrc"] ?: desc[@"ssrc"], parameter[@"key"], parameter[@"value"] ? [@":" stringByAppendingString:parameter[@"value"]] : @""];
             [sdp addObject:ssrcString];
         }
@@ -646,11 +668,20 @@
             [sdp addObject:candidate[@"relPort"]];
         }
     }
+    if (candidate[@"tcpType"] && [[candidate[@"protocol"] uppercaseString] isEqualToString:@"TCP"]) {
+        [sdp addObject:@"tcptype"];
+        [sdp addObject:candidate[@"tcpType"]];
+    }
 
     [sdp addObject:@"generation"];
-#warning Should I be checking the length?
     [sdp addObject:candidate[@"generation"] ?: @"0"];
 
+//    via https://github.com/otalk/sdp-jingle-json/blob/master/lib/tosdp.js#L206
+//    FIXME: apparently this is wrong per spec
+//    but then, we need this when actually putting this into
+//    SDP so it's going to stay.
+//    decision needs to be revisited when browsers dont
+//    accept this any longer
     return [@"a=candidate:" stringByAppendingString:[sdp componentsJoinedByString:@" "]];
 }
 
