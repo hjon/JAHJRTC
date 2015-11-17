@@ -9,6 +9,8 @@
 static NSString *const NS = @"urn:xmpp:jingle:1";
 static NSString *const GROUPNS = @"urn:xmpp:jingle:apps:grouping:0";
 static NSString *const INFONS = @"urn:xmpp:jingle:apps:rtp:info:1";
+static NSString *const DATANS = @"urn:xmpp:jingle:apps:rtp:1";
+static NSString *const ICENS = @"urn:xmpp:jingle:transports:ice-udp:1";
 
 @implementation JAHConvertJingle (Jingle)
 
@@ -69,14 +71,26 @@ static NSString *const INFONS = @"urn:xmpp:jingle:apps:rtp:info:1";
         for (NSXMLNode* node in [element children]) {
             if ([node kind] == NSXMLElementKind) {
                 if ([[node name] isEqualToString:@"description"]) {
-                    id descriptionObject = [JAHConvertJingle objectForElement:node];
-                    if (descriptionObject) {
-                        contentDictionary[@"description"] = descriptionObject;
+                    ObjectToXMLBlock convertDescription;
+                    NSXMLNode* namespace = [(NSXMLElement*)node resolveNamespaceForName:[node name]];
+                    if ([[namespace stringValue] isEqualToString:@"http://talky.io/ns/datachannel"]) {
+                        convertDescription = [JAHConvertJingle blockForName:@"description" namespace:@"http://talky.io/ns/datachannel"];
+                    } else {
+                        convertDescription = [JAHConvertJingle blockForName:@"description" namespace:DATANS];
+                    }
+                    if (convertDescription) {
+                        id descriptionObject = convertDescription(node);
+                        if (descriptionObject) {
+                            contentDictionary[@"description"] = descriptionObject;
+                        }
                     }
                 } else if ([[node name] isEqualToString:@"transport"]) {
-                    id transportObject = [JAHConvertJingle objectForElement:node];
-                    if (transportObject) {
-                        contentDictionary[@"transport"] = transportObject;
+                    ObjectToXMLBlock convertTransport = [JAHConvertJingle blockForName:@"transport" namespace:ICENS];
+                    if (convertTransport) {
+                        id transportObject = convertTransport(node);
+                        if (transportObject) {
+                            contentDictionary[@"transport"] = transportObject;
+                        }
                     }
                 }
             }
@@ -96,13 +110,15 @@ static NSString *const INFONS = @"urn:xmpp:jingle:apps:rtp:info:1";
         NSDictionary* description = contentObject[@"description"];
         if ([description[@"descType"] isEqualToString:@"datachannel"]) {
             ObjectToXMLBlock convertDescription = [JAHConvertJingle blockForName:@"description" namespace:@"http://talky.io/ns/datachannel"];
-            [contentElement addChild:convertDescription(contentObject[@"description"])];
+            [contentElement addChild:convertDescription(description)];
         } else {
-            ObjectToXMLBlock convertDescription = [JAHConvertJingle blockForName:@"description" namespace:@"urn:xmpp:jingle:apps:rtp:1"];
-            [contentElement addChild:convertDescription(contentObject[@"description"])];
+            ObjectToXMLBlock convertDescription = [JAHConvertJingle blockForName:@"description" namespace:DATANS];
+            [contentElement addChild:convertDescription(description)];
         }
-        ObjectToXMLBlock convertTransport = [JAHConvertJingle blockForName:@"transport" namespace:@"urn:xmpp:jingle:transports:ice-udp:1"];
-        [contentElement addChild:convertTransport(contentObject[@"transport"])];
+        if (contentObject[@"transport"]) {
+            ObjectToXMLBlock convertTransport = [JAHConvertJingle blockForName:@"transport" namespace:ICENS];
+            [contentElement addChild:convertTransport(contentObject[@"transport"])];
+        }
 
         return contentElement;
     };
