@@ -18,7 +18,7 @@ static NSString *const NS = @"urn:xmpp:jingle:transports:ice-udp:1";
         iceDictionary[@"pwd"] = [JAHConvertJingle attributeForXMLElement:element withName:@"pwd" defaultValue:nil];
         iceDictionary[@"ufrag"] = [JAHConvertJingle attributeForXMLElement:element withName:@"ufrag" defaultValue:nil];
 
-        iceDictionary[@"candidates"] = [JAHConvertJingle childrenOfElement:element withName:@"candidate" namespace:@"urn:xmpp:jingle:transports:ice-udp:1"];
+        iceDictionary[@"candidates"] = [JAHConvertJingle childrenOfElement:element withName:@"candidate" namespace:NS];
         iceDictionary[@"fingerprints"] = [JAHConvertJingle childrenOfElement:element withName:@"fingerprint" namespace:@"urn:xmpp:jingle:apps:dtls:0"];
         iceDictionary[@"sctp"] = [JAHConvertJingle childrenOfElement:element withName:@"sctpmap" namespace:@"urn:xmpp:jingle:transports:dtls-sctp:1"];
 
@@ -31,7 +31,7 @@ static NSString *const NS = @"urn:xmpp:jingle:transports:ice-udp:1";
         [JAHConvertJingle addToElement:transportElement attributeWithName:@"pwd" value:transportObject[@"pwd"]];
         [JAHConvertJingle addToElement:transportElement attributeWithName:@"ufrag" value:transportObject[@"ufrag"]];
 
-        ObjectToXMLBlock convertCandidate = [JAHConvertJingle blockForName:@"candidate" namespace:@"urn:xmpp:jingle:transports:ice-udp:1"];
+        ObjectToXMLBlock convertCandidate = [JAHConvertJingle blockForName:@"candidate" namespace:NS];
         for (NSDictionary* candidate in transportObject[@"candidates"]) {
             [transportElement addChild:convertCandidate(candidate)];
         }
