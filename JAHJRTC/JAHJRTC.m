@@ -11,6 +11,40 @@
 
 @implementation JAHJRTC
 
+#pragma mark - Conversion from Jingle XML to SDP
+
++ (NSString*)incomingSDPAnswerForElement:(NSXMLElement*)element {
+    NSDictionary* object = [JAHConvertJingle objectForElement:element];
+    return [[self class] incomingSDPAnswerForSession:object];
+}
+
++ (NSString*)incomingSDPOfferForElement:(NSXMLElement*)element {
+    NSDictionary* object = [JAHConvertJingle objectForElement:element];
+    return [[self class] incomingSDPOfferForSession:object];
+}
+
++ (NSXMLElement*)outgoingElementAnswerForSDP:(NSString*)sessionSDP {
+    NSDictionary* object = [[self class] outgoingObjectAnswerForSDP:sessionSDP creator:nil];
+
+    ObjectToXMLBlock convertObjectToJingle = [JAHConvertJingle blockForName:@"jingle" namespace:@"urn:xmpp:jingle:1"];
+    NSXMLElement* element = convertObjectToJingle(object);
+
+    return element;
+}
+
++ (NSXMLElement*)outgoingElementOfferForSDP:(NSString*)sessionSDP {
+    NSDictionary* object = [[self class] outgoingObjectOfferForSDP:sessionSDP creator:nil];
+
+    ObjectToXMLBlock convertObjectToJingle = [JAHConvertJingle blockForName:@"jingle" namespace:@"urn:xmpp:jingle:1"];
+    NSXMLElement* element = convertObjectToJingle(object);
+
+    return element;
+}
+
+//toCandidateSDP
+//toMediaSDP
+//toSessionSDP
+
 #pragma mark - Conversion from object to SDP
 
 + (NSString*)incomingSDPOfferForSession:(NSDictionary*)session {
@@ -52,35 +86,83 @@
 #pragma mark - Conversion from SDP to objects
 
 + (NSDictionary*)incomingObjectOfferForSDP:(NSString*)sessionSDP creator:(NSString*)creator {
-    return [JAHConvertSDP dictionaryForSDP:sessionSDP options:@{@"role": @"responder", @"direction": @"incoming", @"creator": creator}];
+    NSDictionary* options;
+    if (creator) {
+        options = @{@"role": @"responder", @"direction": @"incoming", @"creator": creator};
+    } else {
+        options = @{@"role": @"responder", @"direction": @"incoming"};
+    }
+    return [JAHConvertSDP dictionaryForSDP:sessionSDP options:options];
 }
 
 + (NSDictionary*)outgoingObjectOfferForSDP:(NSString*)sessionSDP creator:(NSString*)creator {
-    return [JAHConvertSDP dictionaryForSDP:sessionSDP options:@{@"role": @"initiator", @"direction": @"outgoing", @"creator": creator}];
+    NSDictionary* options;
+    if (creator) {
+        options = @{@"role": @"initiator", @"direction": @"outgoing", @"creator": creator};
+    } else {
+        options = @{@"role": @"initiator", @"direction": @"outgoing"};
+    }
+    return [JAHConvertSDP dictionaryForSDP:sessionSDP options:options];
 }
 
 + (NSDictionary*)incomingObjectAnswerForSDP:(NSString*)sessionSDP creator:(NSString*)creator {
-    return [JAHConvertSDP dictionaryForSDP:sessionSDP options:@{@"role": @"initiator", @"direction": @"incoming", @"creator": creator}];
+    NSDictionary* options;
+    if (creator) {
+        options = @{@"role": @"initiator", @"direction": @"incoming", @"creator": creator};
+    } else {
+        options = @{@"role": @"initiator", @"direction": @"incoming"};
+    }
+    return [JAHConvertSDP dictionaryForSDP:sessionSDP options:options];
 }
 
 + (NSDictionary*)outgoingObjectAnswerForSDP:(NSString*)sessionSDP creator:(NSString*)creator {
-    return [JAHConvertSDP dictionaryForSDP:sessionSDP options:@{@"role": @"responder", @"direction": @"outgoing", @"creator": creator}];
+    NSDictionary* options;
+    if (creator) {
+        options = @{@"role": @"responder", @"direction": @"outgoing", @"creator": creator};
+    } else {
+        options = @{@"role": @"responder", @"direction": @"outgoing"};
+    }
+    return [JAHConvertSDP dictionaryForSDP:sessionSDP options:options];
 }
 
 + (NSDictionary*)incomingMediaObjectOfferForSDP:(NSString*)mediaSDP creator:(NSString*)creator {
-    return [JAHConvertSDP dictionaryForSDP:mediaSDP options:@{@"role": @"responder", @"direction": @"incoming", @"creator": creator}];
+    NSDictionary* options;
+    if (creator) {
+        options = @{@"role": @"responder", @"direction": @"incoming", @"creator": creator};
+    } else {
+        options = @{@"role": @"responder", @"direction": @"incoming"};
+    }
+    return [JAHConvertSDP dictionaryForSDP:mediaSDP options:options];
 }
 
 + (NSDictionary*)outgoingMediaObjectOfferForSDP:(NSString*)mediaSDP creator:(NSString*)creator {
-    return [JAHConvertSDP dictionaryForSDP:mediaSDP options:@{@"role": @"initiator", @"direction": @"outgoing", @"creator": creator}];
+    NSDictionary* options;
+    if (creator) {
+        options = @{@"role": @"initiator", @"direction": @"outgoing", @"creator": creator};
+    } else {
+        options = @{@"role": @"initiator", @"direction": @"outgoing"};
+    }
+    return [JAHConvertSDP dictionaryForSDP:mediaSDP options:options];
 }
 
 + (NSDictionary*)incomingMediaObjectAnswerForSDP:(NSString*)mediaSDP creator:(NSString*)creator {
-    return [JAHConvertSDP dictionaryForSDP:mediaSDP options:@{@"role": @"initiator", @"direction": @"incoming", @"creator": creator}];
+    NSDictionary* options;
+    if (creator) {
+        options = @{@"role": @"initiator", @"direction": @"incoming", @"creator": creator};
+    } else {
+        options = @{@"role": @"initiator", @"direction": @"incoming"};
+    }
+    return [JAHConvertSDP dictionaryForSDP:mediaSDP options:options];
 }
 
 + (NSDictionary*)outgoingMediaObjectAnswerForSDP:(NSString*)mediaSDP creator:(NSString*)creator {
-    return [JAHConvertSDP dictionaryForSDP:mediaSDP options:@{@"role": @"responder", @"direction": @"outgoing", @"creator": creator}];
+    NSDictionary* options;
+    if (creator) {
+        options = @{@"role": @"responder", @"direction": @"outgoing", @"creator": creator};
+    } else {
+        options = @{@"role": @"responder", @"direction": @"outgoing"};
+    }
+    return [JAHConvertSDP dictionaryForSDP:mediaSDP options:options];
 }
 
 //toCandidateSDP

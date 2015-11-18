@@ -9,6 +9,14 @@
 
 @interface JAHJRTC : NSObject
 
+#pragma mark - Conversion to/from Jingle XML and SDP
+
++ (NSString*)incomingSDPAnswerForElement:(NSXMLElement*)element;
++ (NSString*)incomingSDPOfferForElement:(NSXMLElement*)element;
+
++ (NSXMLElement*)outgoingElementAnswerForSDP:(NSString*)sessionSDP;
++ (NSXMLElement*)outgoingElementOfferForSDP:(NSString*)sessionSDP;
+
 #pragma mark - Conversion from objects to SDP
 
 + (NSString*)incomingSDPOfferForSession:(NSDictionary*)session;
