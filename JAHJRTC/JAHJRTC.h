@@ -17,6 +17,16 @@
 + (NSXMLElement*)outgoingElementAnswerForSDP:(NSString*)sessionSDP;
 + (NSXMLElement*)outgoingElementOfferForSDP:(NSString*)sessionSDP;
 
+#pragma mark - Conversion for ICE candidates
+
++ (NSString*)sdpCandidateForObject:(NSDictionary*)object;
++ (NSDictionary*)objectForSDPCandidate:(NSString*)candidateSDP;
+
+#pragma mark - Other convenience methods
+
++ (NSXMLElement*)elementForJingleObject:(NSDictionary*)object;
++ (NSString*)sdpForJingleElement:(NSXMLElement*)element;
+
 #pragma mark - Conversion from objects to SDP
 
 + (NSString*)incomingSDPOfferForSession:(NSDictionary*)session;
@@ -29,10 +39,6 @@
 + (NSString*)incomingMediaSDPAnswerForMedia:(NSDictionary*)media;
 + (NSString*)outgoingMediaSDPAnswerForMedia:(NSDictionary*)media;
 
-//toCandidateSDP
-//toMediaSDP
-//toSessionSDP
-
 #pragma mark - Conversion from SDP to objects
 
 + (NSDictionary*)incomingObjectOfferForSDP:(NSString*)sessionSDP creator:(NSString*)creator;
@@ -44,9 +50,5 @@
 + (NSDictionary*)outgoingMediaObjectOfferForSDP:(NSString*)mediaSDP creator:(NSString*)creator;
 + (NSDictionary*)incomingMediaObjectAnswerForSDP:(NSString*)mediaSDP creator:(NSString*)creator;
 + (NSDictionary*)outgoingMediaObjectAnswerForSDP:(NSString*)mediaSDP creator:(NSString*)creator;
-
-//toCandidateSDP
-//toMediaSDP
-//toSessionSDP
 
 @end

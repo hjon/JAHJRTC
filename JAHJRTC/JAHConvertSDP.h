@@ -11,4 +11,7 @@
 + (NSDictionary*)dictionaryForSDP:(NSString*)sdp options:(NSDictionary*)options;
 + (NSString*)SDPForSession:(NSDictionary*)session options:(NSDictionary*)options;
 
++ (NSString*)sdpForCandidate:(NSDictionary*)candidate;
++ (NSDictionary*)candidateForLine:(NSString*)line;
+
 @end

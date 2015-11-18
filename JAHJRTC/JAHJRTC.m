@@ -41,9 +41,29 @@
     return element;
 }
 
-//toCandidateSDP
-//toMediaSDP
-//toSessionSDP
+#pragma mark - Conversion for ICE candidates
+
++ (NSString*)sdpCandidateForObject:(NSDictionary*)object {
+    return [JAHConvertSDP sdpForCandidate:object];
+}
+
++ (NSDictionary*)objectForSDPCandidate:(NSString*)candidateSDP {
+    return [JAHConvertSDP candidateForLine:candidateSDP];
+}
+
+#pragma mark - Other convenience methods
+
++ (NSXMLElement*)elementForJingleObject:(NSDictionary*)object {
+    ObjectToXMLBlock convertObjectToElement = [JAHConvertJingle blockForName:@"jingle" namespace:@"urn:xmpp:jingle:1"];
+    NSXMLElement* element = convertObjectToElement(object);
+
+    return element;
+}
+
++ (NSString*)sdpForJingleElement:(NSXMLElement*)element {
+    NSDictionary* object = [JAHConvertJingle objectForElement:element];
+    return [JAHConvertSDP SDPForSession:object options:nil];
+}
 
 #pragma mark - Conversion from object to SDP
 
@@ -78,10 +98,6 @@
 + (NSString*)outgoingMediaSDPAnswerForMedia:(NSDictionary*)media {
     return [JAHConvertSDP SDPForSession:media options:@{@"role": @"responder", @"direction": @"outgoing"}];
 }
-
-//toCandidateSDP
-//toMediaSDP
-//toSessionSDP
 
 #pragma mark - Conversion from SDP to objects
 
@@ -164,9 +180,5 @@
     }
     return [JAHConvertSDP dictionaryForSDP:mediaSDP options:options];
 }
-
-//toCandidateSDP
-//toMediaSDP
-//toSessionSDP
 
 @end
