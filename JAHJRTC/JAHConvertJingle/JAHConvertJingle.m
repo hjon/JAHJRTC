@@ -50,6 +50,8 @@
     return dictionary[@"toElement"];
 }
 
+#pragma mark -
+
 + (NSString*)attributeForXMLElement:(NSXMLElement*)element withName:(NSString*)name defaultValue:(NSString*)defaultValue {
     NSXMLNode* attribute = [element attributeForName:name];
     NSString* value = [attribute stringValue] ?: defaultValue;
