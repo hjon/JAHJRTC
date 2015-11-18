@@ -70,27 +70,16 @@ static NSString *const ICENS = @"urn:xmpp:jingle:transports:ice-udp:1";
 
         for (NSXMLNode* node in [element children]) {
             if ([node kind] == NSXMLElementKind) {
-                if ([[node name] isEqualToString:@"description"]) {
-                    ObjectToXMLBlock convertDescription;
-                    NSXMLNode* namespace = [(NSXMLElement*)node resolveNamespaceForName:[node name]];
-                    if ([[namespace stringValue] isEqualToString:@"http://talky.io/ns/datachannel"]) {
-                        convertDescription = [JAHConvertJingle blockForName:@"description" namespace:@"http://talky.io/ns/datachannel"];
-                    } else {
-                        convertDescription = [JAHConvertJingle blockForName:@"description" namespace:DATANS];
+                NSXMLElement* element = (NSXMLElement*)node;
+                if ([[element name] isEqualToString:@"description"]) {
+                    id descriptionObject = [JAHConvertJingle objectForElement:element];
+                    if (descriptionObject) {
+                        contentDictionary[@"description"] = descriptionObject;
                     }
-                    if (convertDescription) {
-                        id descriptionObject = convertDescription(node);
-                        if (descriptionObject) {
-                            contentDictionary[@"description"] = descriptionObject;
-                        }
-                    }
-                } else if ([[node name] isEqualToString:@"transport"]) {
-                    ObjectToXMLBlock convertTransport = [JAHConvertJingle blockForName:@"transport" namespace:ICENS];
-                    if (convertTransport) {
-                        id transportObject = convertTransport(node);
-                        if (transportObject) {
-                            contentDictionary[@"transport"] = transportObject;
-                        }
+                } else if ([[element name] isEqualToString:@"transport"]) {
+                    id transportObject = [JAHConvertJingle objectForElement:element];
+                    if (transportObject) {
+                        contentDictionary[@"transport"] = transportObject;
                     }
                 }
             }

@@ -23,8 +23,13 @@ static NSString *const GROUPNS = @"urn:xmpp:jingle:apps:grouping:0";
         description[@"media"] = [JAHConvertJingle attributeForXMLElement:element withName:@"media" defaultValue:nil];
         description[@"ssrc"] = [JAHConvertJingle attributeForXMLElement:element withName:@"ssrc" defaultValue:nil];
 
-        description[@"bandwidth"] = [JAHConvertJingle subTextForElement:element withName:@"bandwidth" namespace:NS defaultValue:nil];
-        description[@"bandwidthType"] = [JAHConvertJingle subAttributeForXMLElement:element withName:@"bandwidth" namespace:NS attributeName:@"type" defaultValue:nil];
+        NSString* bandwidth = [JAHConvertJingle subTextForElement:element withName:@"bandwidth" namespace:NS defaultValue:nil];
+        NSString* bandwidthType = [JAHConvertJingle subAttributeForXMLElement:element withName:@"bandwidth" namespace:NS attributeName:@"type" defaultValue:nil];
+        if ([bandwidth length] && [bandwidth length]) {
+            description[@"bandwidth"] = @{@"bandwidth": bandwidth,
+                                          @"type": bandwidthType};
+        }
+
         description[@"mux"] = @([JAHConvertJingle childrenExistForXMLElement:element withName:@"rtcp-mux" namespace:NS]);
 
         NSArray* feedback = [JAHConvertJingle childrenOfElement:element withName:@"rtcp-fb" namespace:FBNS];
@@ -48,11 +53,8 @@ static NSString *const GROUPNS = @"urn:xmpp:jingle:apps:grouping:0";
         [JAHConvertJingle addToElement:description attributeWithName:@"ssrc" value:object[@"ssrc"]];
 
         if (object[@"bandwidth"]) {
-            NSXMLElement* bandwidth = [NSXMLElement elementWithName:@"bandwidth"];
-            [bandwidth addNamespace:[NSXMLNode namespaceWithName:@"" stringValue:NS]];
-            [bandwidth setStringValue:object[@"bandwidth"]];
-            [JAHConvertJingle addToElement:bandwidth attributeWithName:@"type" value:object[@"bandwidthType"]];
-            [description addChild:bandwidth];
+            ObjectToXMLBlock convertBandwidth = [JAHConvertJingle blockForName:@"bandwidth" namespace:NS];
+            [description addChild:convertBandwidth(object[@"bandwidth"])];
         }
         if ([(NSNumber*)object[@"mux"] boolValue]) {
             NSXMLElement* mux = [NSXMLElement elementWithName:@"rtcp-mux"];
@@ -92,6 +94,25 @@ static NSString *const GROUPNS = @"urn:xmpp:jingle:apps:grouping:0";
         return description;
     };
     [[self class] registerElementName:@"description" namespace:NS withDictionary:@{@"toObject": descriptionToObject, @"toElement": objectToDescription}];
+
+    XMLToObjectBlock bandwidthToObject = ^id(NSXMLElement *element) {
+        NSMutableDictionary* bandwidth = [NSMutableDictionary dictionary];
+
+        bandwidth[@"bandwidth"] = [element stringValue];
+        bandwidth[@"type"] = [JAHConvertJingle attributeForXMLElement:element withName:@"type" defaultValue:nil];
+
+        return bandwidth;
+    };
+    ObjectToXMLBlock objectToBandwidth = ^id(id object) {
+        NSXMLElement* bandwidth = [NSXMLElement elementWithName:@"bandwidth"];
+        [bandwidth addNamespace:[NSXMLNode namespaceWithName:@"" stringValue:NS]];
+        [bandwidth setStringValue:object[@"bandwidth"]];
+
+        [JAHConvertJingle addToElement:bandwidth attributeWithName:@"type" value:object[@"type"]];
+
+        return  bandwidth;
+    };
+    [[self class] registerElementName:@"bandwidth" namespace:NS withDictionary:@{@"toObject": bandwidthToObject, @"toElement": objectToBandwidth}];
 
     XMLToObjectBlock payloadToObject = ^id(NSXMLElement *element) {
         NSMutableDictionary* payload = [NSMutableDictionary dictionary];

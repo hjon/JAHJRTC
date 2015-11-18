@@ -463,7 +463,7 @@
 }
 
 + (NSDictionary*)bandwidthForLine:(NSString*)line {
-    NSMutableArray* parts = [[[line substringFromIndex:2] componentsSeparatedByString:@" "] mutableCopy];
+    NSMutableArray* parts = [[[line substringFromIndex:2] componentsSeparatedByString:@":"] mutableCopy];
     NSMutableDictionary* parsed = [NSMutableDictionary dictionary];
     parsed[@"type"] = [parts jah_popFirstObject];
     parsed[@"bandwidth"] = [parts jah_popFirstObject];
