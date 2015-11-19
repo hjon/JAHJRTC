@@ -25,7 +25,7 @@
 #pragma mark - Other convenience methods
 
 + (NSXMLElement*)elementForJingleObject:(NSDictionary*)object;
-+ (NSString*)sdpForJingleElement:(NSXMLElement*)element;
++ (NSDictionary*)sdpAndObjectForJingleElement:(NSXMLElement*)element;
 
 #pragma mark - Conversion from objects to SDP
 

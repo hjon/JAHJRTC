@@ -60,9 +60,9 @@
     return element;
 }
 
-+ (NSString*)sdpForJingleElement:(NSXMLElement*)element {
++ (NSDictionary*)sdpAndObjectForJingleElement:(NSXMLElement*)element {
     NSDictionary* object = [JAHConvertJingle objectForElement:element];
-    return [JAHConvertSDP SDPForSession:object options:nil];
+    return @{@"sdp": [JAHConvertSDP SDPForSession:object options:nil], @"object": object};
 }
 
 #pragma mark - Conversion from object to SDP

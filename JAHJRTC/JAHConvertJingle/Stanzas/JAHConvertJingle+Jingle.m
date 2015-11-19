@@ -100,7 +100,7 @@ static NSString *const ICENS = @"urn:xmpp:jingle:transports:ice-udp:1";
         if ([description[@"descType"] isEqualToString:@"datachannel"]) {
             ObjectToXMLBlock convertDescription = [JAHConvertJingle blockForName:@"description" namespace:@"http://talky.io/ns/datachannel"];
             [contentElement addChild:convertDescription(description)];
-        } else {
+        } else if (description[@"descType"] != nil) {
             ObjectToXMLBlock convertDescription = [JAHConvertJingle blockForName:@"description" namespace:DATANS];
             [contentElement addChild:convertDescription(description)];
         }
