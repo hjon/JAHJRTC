@@ -11,6 +11,8 @@
 
 #pragma mark - Conversion to/from Jingle XML and SDP
 
++ (NSDictionary*)incomingAnswerForElement:(NSXMLElement*)element;
+
 + (NSString*)incomingSDPAnswerForElement:(NSXMLElement*)element;
 + (NSString*)incomingSDPOfferForElement:(NSXMLElement*)element;
 
@@ -25,7 +27,7 @@
 #pragma mark - Other convenience methods
 
 + (NSXMLElement*)elementForJingleObject:(NSDictionary*)object;
-+ (NSDictionary*)sdpAndObjectForJingleElement:(NSXMLElement*)element;
++ (NSDictionary*)objectForElement:(NSXMLElement*)element;
 
 #pragma mark - Conversion from objects to SDP
 

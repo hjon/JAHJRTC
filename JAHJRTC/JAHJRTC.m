@@ -13,6 +13,11 @@
 
 #pragma mark - Conversion from Jingle XML to SDP
 
++ (NSDictionary*)incomingAnswerForElement:(NSXMLElement*)element {
+    NSDictionary* object = [JAHConvertJingle objectForElement:element];
+    return @{@"sdp": [[self class] incomingSDPAnswerForSession:object], @"object": object};
+}
+
 + (NSString*)incomingSDPAnswerForElement:(NSXMLElement*)element {
     NSDictionary* object = [JAHConvertJingle objectForElement:element];
     return [[self class] incomingSDPAnswerForSession:object];
@@ -60,9 +65,8 @@
     return element;
 }
 
-+ (NSDictionary*)sdpAndObjectForJingleElement:(NSXMLElement*)element {
-    NSDictionary* object = [JAHConvertJingle objectForElement:element];
-    return @{@"sdp": [JAHConvertSDP SDPForSession:object options:nil], @"object": object};
++ (NSDictionary*)objectForElement:(NSXMLElement*)element {
+    return [JAHConvertJingle objectForElement:element];
 }
 
 #pragma mark - Conversion from object to SDP
