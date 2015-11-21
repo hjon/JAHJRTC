@@ -14,6 +14,9 @@ typedef void (^BuilderBlock)(NSString* value);
 
 @interface JAHConvertJingle : NSObject
 
+// This namespace needs to be registered once before any conversions are performed
++ (void)registerDatachannelNamespace:(NSString*)namespace;
+
 + (id)objectForElement:(NSXMLNode*)parentElement;
 
 + (void)registerElementName:(NSString*)name namespace:(NSString*)namespace withDictionary:(NSDictionary*)dictionary;

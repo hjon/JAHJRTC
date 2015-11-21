@@ -8,4 +8,6 @@
 
 @interface JAHConvertJingle (Jingle)
 
++ (void)registerDatachannelNamespaceAtJingleLevel:(NSString*)namespace;
+
 @end

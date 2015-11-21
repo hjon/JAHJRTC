@@ -9,6 +9,10 @@
 
 @interface JAHJRTC : NSObject
 
+#pragma mark - Register data channel namespace
+
++ (void)registerDatachannelNamespace:(NSString*)namespace;
+
 #pragma mark - Conversion to/from Jingle XML and SDP
 
 + (NSDictionary*)incomingAnswerForElement:(NSXMLElement*)element;

@@ -233,19 +233,6 @@ static NSString *const GROUPNS = @"urn:xmpp:jingle:apps:grouping:0";
     };
     [[self class] registerElementName:@"parameter" namespace:NS withDictionary:@{@"toObject": parameterToObject, @"toElement": objectToParameter}];
 
-    XMLToObjectBlock talkyDescriptionToObject = ^id(NSXMLElement *element) {
-        NSMutableDictionary* description = [NSMutableDictionary dictionary];
-        description[@"descType"] = @"datachannel";
-        return description;
-    };
-    ObjectToXMLBlock objectToTalkyDescription = ^id(id object) {
-        NSXMLElement* description = [NSXMLElement elementWithName:@"description"];
-        [description addNamespace:[NSXMLNode namespaceWithName:@"" stringValue:@"http://talky.io/ns/datachannel"]];
-
-        return description;
-    };
-    [[self class] registerElementName:@"description" namespace:@"http://talky.io/ns/datachannel" withDictionary:@{@"toObject": talkyDescriptionToObject, @"toElement": objectToTalkyDescription}];
-
 #pragma mark - Content Group
     XMLToObjectBlock contentGroupToObject = ^id(NSXMLElement *element) {
         NSMutableDictionary* contentGroup = [NSMutableDictionary dictionary];
@@ -356,6 +343,21 @@ static NSString *const GROUPNS = @"urn:xmpp:jingle:apps:grouping:0";
         return unmute;
     };
     [[self class] registerElementName:@"unmute" namespace:INFONS withDictionary:@{@"toObject": unmuteToObject, @"toElement": objectToUnmute}];
+}
+
++ (void)registerDatachannelNamespaceAtRTPLevel:(NSString*)namespace {
+    XMLToObjectBlock descriptionToObject = ^id(NSXMLElement *element) {
+        NSMutableDictionary* description = [NSMutableDictionary dictionary];
+        description[@"descType"] = @"datachannel";
+        return description;
+    };
+    ObjectToXMLBlock objectToDescription = ^id(id object) {
+        NSXMLElement* description = [NSXMLElement elementWithName:@"description"];
+        [description addNamespace:[NSXMLNode namespaceWithName:@"" stringValue:namespace]];
+
+        return description;
+    };
+    [[self class] registerElementName:@"description" namespace:namespace withDictionary:@{@"toObject": descriptionToObject, @"toElement": objectToDescription}];
 }
 
 @end

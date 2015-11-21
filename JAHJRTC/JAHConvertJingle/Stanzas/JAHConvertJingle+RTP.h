@@ -8,4 +8,6 @@
 
 @interface JAHConvertJingle (RTP)
 
++ (void)registerDatachannelNamespaceAtRTPLevel:(NSString*)namespace;
+
 @end

@@ -6,7 +6,17 @@
 
 #import "JAHConvertJingle.h"
 
+#import "JAHConvertJingle+Jingle.h"
+#import "JAHConvertJingle+RTP.h"
+
 @implementation JAHConvertJingle
+
+#pragma mark - Register data channel namespace
+
++ (void)registerDatachannelNamespace:(NSString*)namespace {
+    [[self class] registerDatachannelNamespaceAtJingleLevel:namespace];
+    [[self class] registerDatachannelNamespaceAtRTPLevel:namespace];
+}
 
 #pragma mark - XML to objects
 

@@ -59,7 +59,9 @@ static NSString *const ICENS = @"urn:xmpp:jingle:transports:ice-udp:1";
         return jingleElement;
     };
     [[self class] registerElementName:@"jingle" namespace:NS withDictionary:@{@"toObject": jingleToObject, @"toElement": objectToJingle}];
+}
 
++ (void)registerDatachannelNamespaceAtJingleLevel:(NSString*)namespace {
     XMLToObjectBlock contentToObject = ^id(NSXMLElement *element) {
         NSMutableDictionary* contentDictionary = [NSMutableDictionary dictionary];
 
@@ -98,7 +100,7 @@ static NSString *const ICENS = @"urn:xmpp:jingle:transports:ice-udp:1";
 
         NSDictionary* description = contentObject[@"description"];
         if ([description[@"descType"] isEqualToString:@"datachannel"]) {
-            ObjectToXMLBlock convertDescription = [JAHConvertJingle blockForName:@"description" namespace:@"http://talky.io/ns/datachannel"];
+            ObjectToXMLBlock convertDescription = [JAHConvertJingle blockForName:@"description" namespace:namespace];
             [contentElement addChild:convertDescription(description)];
         } else if (description[@"descType"] != nil) {
             ObjectToXMLBlock convertDescription = [JAHConvertJingle blockForName:@"description" namespace:DATANS];
@@ -113,6 +115,5 @@ static NSString *const ICENS = @"urn:xmpp:jingle:transports:ice-udp:1";
     };
     [[self class] registerElementName:@"content" namespace:NS withDictionary:@{@"toObject": contentToObject, @"toElement": objectToContent}];
 }
-
 
 @end

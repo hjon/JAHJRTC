@@ -11,6 +11,12 @@
 
 @implementation JAHJRTC
 
+#pragma mark - Register data channel namespace
+
++ (void)registerDatachannelNamespace:(NSString*)namespace {
+    [JAHConvertJingle registerDatachannelNamespace:namespace];
+}
+
 #pragma mark - Conversion from Jingle XML to SDP
 
 + (NSDictionary*)incomingAnswerForElement:(NSXMLElement*)element {
