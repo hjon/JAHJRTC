@@ -18,6 +18,11 @@
     return @{@"sdp": [[self class] incomingSDPAnswerForSession:object], @"object": object};
 }
 
++ (NSDictionary*)incomingOfferForElement:(NSXMLElement*)element {
+    NSDictionary* object = [JAHConvertJingle objectForElement:element];
+    return @{@"sdp": [[self class] incomingSDPOfferForSession:object], @"object": object};
+}
+
 + (NSString*)incomingSDPAnswerForElement:(NSXMLElement*)element {
     NSDictionary* object = [JAHConvertJingle objectForElement:element];
     return [[self class] incomingSDPAnswerForSession:object];
@@ -52,8 +57,46 @@
     return [JAHConvertSDP sdpForCandidate:object];
 }
 
-+ (NSDictionary*)objectForSDPCandidate:(NSString*)candidateSDP {
-    return [JAHConvertSDP candidateForLine:candidateSDP];
++ (NSArray*)candidatesForElement:(NSXMLElement *)element previousRemoteState:(NSDictionary*)remoteState {
+    NSDictionary *object = [JAHJRTC objectForElement:element];
+
+    NSMutableArray* candidates = [NSMutableArray array];
+    for (NSDictionary *content in object[@"contents"]) {
+        for (NSDictionary *candidate in content[@"transport"][@"candidates"]) {
+            NSString *sdp = [JAHJRTC sdpCandidateForObject:candidate];
+            // Drop a=
+            sdp = [sdp substringFromIndex:2];
+            NSInteger mline = 0;
+            NSInteger currentIndex = 0;
+            for (NSDictionary *oldContent in remoteState[@"contents"]) {
+                if ([oldContent[@"name"] isEqualToString:content[@"name"]]) {
+                    mline = currentIndex;
+                    break;
+                }
+                ++currentIndex;
+            }
+
+            [candidates addObject:@{@"mid": content[@"name"], @"index": @(mline), @"sdp": sdp}];
+        }
+    }
+    return [candidates copy];
+}
+
+// TODO: Add 'action' and 'sid' to the returned <jingle> element?
+// TODO: Actually return an <iq> instead of a <jingle> element, with the appropriate type, to, and elementID?
++ (NSXMLElement*)elementForSDPCandidate:(NSString*)candidateSDP mid:(NSString*)mid {
+    // The SDP from RTCPeerConnection/RTCICECandidate doesn't quite match what the translator expects, so add 'a=' to the beginning
+    candidateSDP = [@"a=" stringByAppendingString:candidateSDP];
+    NSDictionary *candidateObject = [JAHConvertSDP candidateForLine:candidateSDP];
+
+    // We want a full <jingle> element to be returned, so wrap the candidate in the structure needed for the translator to return a <jingle> element
+    NSDictionary *content = @{@"name": mid,
+                              @"transport": @{
+                                      @"candidates": @[candidateObject]
+                                      }};
+    NSDictionary *object = @{@"contents": @[content]};
+
+    return [JAHJRTC elementForJingleObject:object];
 }
 
 #pragma mark - Other convenience methods

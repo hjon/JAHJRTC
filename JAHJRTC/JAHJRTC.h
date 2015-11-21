@@ -12,6 +12,7 @@
 #pragma mark - Conversion to/from Jingle XML and SDP
 
 + (NSDictionary*)incomingAnswerForElement:(NSXMLElement*)element;
++ (NSDictionary*)incomingOfferForElement:(NSXMLElement*)element;
 
 + (NSString*)incomingSDPAnswerForElement:(NSXMLElement*)element;
 + (NSString*)incomingSDPOfferForElement:(NSXMLElement*)element;
@@ -21,8 +22,8 @@
 
 #pragma mark - Conversion for ICE candidates
 
-+ (NSString*)sdpCandidateForObject:(NSDictionary*)object;
-+ (NSDictionary*)objectForSDPCandidate:(NSString*)candidateSDP;
++ (NSArray*)candidatesForElement:(NSXMLElement *)element previousRemoteState:(NSDictionary*)remoteState;
++ (NSXMLElement*)elementForSDPCandidate:(NSString*)candidateSDP mid:(NSString*)mid;
 
 #pragma mark - Other convenience methods
 
