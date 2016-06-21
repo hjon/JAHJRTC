@@ -125,7 +125,7 @@
 }
 
 + (NSString*)outgoingSDPOfferForSession:(NSDictionary*)session {
-    return [JAHConvertSDP SDPForSession:session options:@{@"role": @"initiator", @"direction": @"ougoing"}];
+    return [JAHConvertSDP SDPForSession:session options:@{@"role": @"initiator", @"direction": @"outgoing"}];
 }
 
 + (NSString*)incomingSDPAnswerForSession:(NSDictionary*)session {
