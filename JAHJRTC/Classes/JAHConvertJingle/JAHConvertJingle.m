@@ -50,7 +50,7 @@
 + (XMLToObjectBlock)blockForElement:(NSXMLElement*)element {
     // TODO: Ideally this should check for a prefix for the namespace and look up based on that
     // For now, just get the default namespace
-    NSXMLNode* namespace = [element resolveNamespaceForName:nil];
+    NSXMLNode* namespace = [element resolveNamespaceForName:@""];
     NSString* key = [NSString stringWithFormat:@"%@|%@", [element localName], [namespace stringValue]];
     NSDictionary* dictionary = [[[self class] sharedConversionMap] objectForKey:key];
     return dictionary[@"toObject"];
