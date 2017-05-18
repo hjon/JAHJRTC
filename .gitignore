@@ -1,6 +1,8 @@
-# Xcode
+# OS X
 .DS_Store
-*/build/*
+
+# Xcode
+build/
 *.pbxuser
 !default.pbxuser
 *.mode1v3
@@ -9,12 +11,17 @@
 !default.mode2v3
 *.perspectivev3
 !default.perspectivev3
-xcuserdata
+xcuserdata/
+*.xccheckout
 profile
 *.moved-aside
 DerivedData
-.idea/
 *.hmap
-*.xccheckout
-Pods
-Podfile.lock
+*.ipa
+
+# Bundler
+.bundle
+
+Carthage
+
+Pods/

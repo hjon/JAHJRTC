@@ -1,0 +1,11 @@
+use_frameworks!
+
+target 'JAHJRTC_Example' do
+  pod 'JAHJRTC', :path => '../'
+
+  target 'JAHJRTC_Tests' do
+    inherit! :search_paths
+
+    
+  end
+end
